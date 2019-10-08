@@ -57,11 +57,9 @@ lazy val publishSettings = Seq(
       Some(
         "AvantStay Releases" at "https://maven.avantstay.rocks/repository/avantstay-releases/"
       )
-  }
+  },
+  credentials += Credentials(Path.userHome / ".sbt" / "credentials")
 )
-
-credentials += Credentials(Path.userHome / ".sbt" / "credentials")
-
 lazy val `inflector-root` = project
   .in(file("."))
   .settings(publishSettings: _*)
