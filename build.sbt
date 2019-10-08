@@ -1,24 +1,18 @@
-crossScalaVersions in Global := Seq("2.12.7", "2.11.12", "2.10.7")
+crossScalaVersions in Global := Seq("2.13.1", "2.12.7", "2.11.12", "2.10.7")
 
 scalaVersion in Global := crossScalaVersions.value.head
 
-organization in Global := "com.hypertino"
+organization in Global := "com.avantstay"
 
-lazy val library = crossProject.settings(publishSettings:_*).settings(
-  name := "inflector",
-  version := "1.0-SNAPSHOT",
-  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % "test",
-  publishArtifact := true,
-  publishArtifact in Test := false
-).jsSettings(
-  // JS-specific settings here
-).jvmSettings(
-  // JVM-specific settings here
-)
-
-lazy val js = library.js
-
-lazy val jvm = library.jvm
+lazy val library = project
+  .settings(publishSettings: _*)
+  .settings(
+    name := "inflector",
+    version := "1.12.0",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8" % "test",
+    publishArtifact := true,
+    publishArtifact in Test := false
+  )
 
 lazy val publishSettings = Seq(
   pomExtra := <url>https://github.com/hypertino/inflector</url>
@@ -48,27 +42,30 @@ lazy val publishSettings = Seq(
   pgpSecretRing := file("./travis/script/ht-oss-private.asc"),
   pgpPublicRing := file("./travis/script/ht-oss-public.asc"),
   usePgpKeyHex("F8CDEF49B0EDEDCC"),
-  pgpPassphrase := Option(System.getenv().get("oss_gpg_passphrase")).map(_.toCharArray),
+  pgpPassphrase := Option(System.getenv().get("oss_gpg_passphrase"))
+    .map(_.toCharArray),
   publishMavenStyle := true,
-  pomIncludeRepository := { _ => false},
+  pomIncludeRepository := { _ =>
+    false
+  },
   publishTo := {
-    val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
+      Some(
+        "AvantStay Snapshots" at "https://maven.avantstay.rocks/repository/avantstay-snapshots/"
+      )
     else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+      Some(
+        "AvantStay Releases" at "https://maven.avantstay.rocks/repository/avantstay-releases/"
+      )
   }
 )
 
-credentials ++= (for {
-  username <- Option(System.getenv().get("sonatype_username"))
-  password <- Option(System.getenv().get("sonatype_password"))
-} yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
+credentials += Credentials(Path.userHome / ".sbt" / "credentials")
 
 lazy val `inflector-root` = project
   .in(file("."))
-  .settings(publishSettings:_*)
-  .aggregate(js, jvm)
+  .settings(publishSettings: _*)
+  .aggregate(library)
   .settings(
     publish := {},
     publishLocal := {},
